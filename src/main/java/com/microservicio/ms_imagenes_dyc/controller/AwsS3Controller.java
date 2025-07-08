@@ -20,44 +20,57 @@ import com.microservicio.ms_imagenes_dyc.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/s3")
+@RequestMapping("/s3")
 @RequiredArgsConstructor
 public class AwsS3Controller {
-    
-    private final AwsS3Service s3Service;
-    private final String bucket = "bucketdyc";
 
-    @GetMapping("/{bucket}/objects")
-    public ResponseEntity<List<S3ObjectDto>> list(@PathVariable String bucket) {
-        return ResponseEntity.ok(s3Service.listObjects(bucket));
-    }
+	private final AwsS3Service awsS3Service;
 
-    @PostMapping("/{bucket}/upload")
-    public ResponseEntity<Void> upload(
-            @PathVariable String bucket,
-            @RequestParam String key,
-            @RequestParam MultipartFile file) {
-        s3Service.upload(bucket, key, file);
-        return ResponseEntity.ok().build();
-    }
+	// Listar objetos en un bucket
+	@GetMapping("/{bucket}/objects")
+	public ResponseEntity<List<S3ObjectDto>> listObjects(@PathVariable String bucket) {
 
-    @GetMapping("/{bucket}/download")
-    public ResponseEntity<byte[]> download(
-            @PathVariable String bucket,
-            @RequestParam String key) {
-        byte[] data = s3Service.downloadAsBytes(bucket, key);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + key + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(data);
-    }
+		List<S3ObjectDto> dtoList = awsS3Service.listObjects(bucket);
+		return ResponseEntity.ok(dtoList);
+	}
 
-    @DeleteMapping("/{bucket}/object")
-    public ResponseEntity<Void> delete(
-            @PathVariable String bucket,
-            @RequestParam String key) {
-        s3Service.delete(bucket, key);
-        return ResponseEntity.noContent().build();
-    }
+	// Obtener objeto como stream
+	@GetMapping("/{bucket}/object/stream")
+	public ResponseEntity<byte[]> getObjectAsStream(@PathVariable String bucket, @RequestParam String key) {
+		byte[] fileBytes = awsS3Service.downloadAsBytes(bucket, key);
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + key)
+				.contentType(MediaType.APPLICATION_OCTET_STREAM).body(fileBytes);
+	}
 
+	// Descargar archivo como byte[]
+	@GetMapping("/{bucket}/object")
+	public ResponseEntity<byte[]> downloadObject(@PathVariable String bucket, @RequestParam String key) {
+		byte[] fileBytes = awsS3Service.downloadAsBytes(bucket, key);
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + key)
+				.contentType(MediaType.APPLICATION_OCTET_STREAM).body(fileBytes);
+	}
+
+	// Subir archivo
+	@PostMapping("/{bucket}/object")
+	public ResponseEntity<Void> uploadObject(@PathVariable String bucket, @RequestParam String key,
+			@RequestParam("file") MultipartFile file) {
+
+		awsS3Service.upload(bucket, key, file);
+		return ResponseEntity.ok().build();
+	}
+
+	// Mover objeto dentro del mismo bucket
+	@PostMapping("/{bucket}/move")
+	public ResponseEntity<Void> moveObject(@PathVariable String bucket, @RequestParam String sourceKey,
+			@RequestParam String destKey) {
+		awsS3Service.moveObject(bucket, sourceKey, destKey);
+		return ResponseEntity.ok().build();
+	}
+
+	// Borrar objeto
+	@DeleteMapping("/{bucket}/object")
+	public ResponseEntity<Void> deleteObject(@PathVariable String bucket, @RequestParam String key) {
+		awsS3Service.deleteObject(bucket, key);
+		return ResponseEntity.noContent().build();
+	}
 }

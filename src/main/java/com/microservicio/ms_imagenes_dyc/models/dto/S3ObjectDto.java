@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class S3ObjectDto {
-    private String key;
-    private Long size;
-    private String lastModified;
+
+	private String key;
+	private Long size;
+	private String lastModified;
 }
