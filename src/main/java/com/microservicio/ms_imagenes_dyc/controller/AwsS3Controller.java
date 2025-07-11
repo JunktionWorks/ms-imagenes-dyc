@@ -67,7 +67,7 @@ public class AwsS3Controller {
 		return ResponseEntity.ok().build();
 	}
 
-	// Borrar objeto
+	// Borrar objeto por key
 	@DeleteMapping("/{bucket}/object")
 	public ResponseEntity<Void> deleteObject(@PathVariable String bucket, @RequestParam String key) {
 		awsS3Service.deleteObject(bucket, key);
