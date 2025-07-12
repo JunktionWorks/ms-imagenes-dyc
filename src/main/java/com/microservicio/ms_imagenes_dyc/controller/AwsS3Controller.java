@@ -51,12 +51,21 @@ public class AwsS3Controller {
 	}
 
 	// Subir archivo
-	@PostMapping("/{bucket}/object")
-	public ResponseEntity<Void> uploadObject(@PathVariable String bucket, @RequestParam String key,
-			@RequestParam("file") MultipartFile file) {
+	// @PostMapping("/{bucket}/object")
+	// public ResponseEntity<Void> uploadObject(@PathVariable String bucket, @RequestParam String key,
+	// 		@RequestParam("file") MultipartFile file) {
 
-		awsS3Service.upload(bucket, key, file);
-		return ResponseEntity.ok().build();
+	// 	awsS3Service.upload(bucket, key, file);
+	// 	return ResponseEntity.ok().build();
+	// }
+
+	@PostMapping("/{bucket}/object")
+	public ResponseEntity<String> uploadAndGetPresignedUrl(
+			@PathVariable String bucket,
+			@RequestParam String key,
+			@RequestParam("file") MultipartFile file) {
+		String url = awsS3Service.upload(bucket, key, file);
+		return ResponseEntity.ok(url);
 	}
 
 	// Mover objeto dentro del mismo bucket
